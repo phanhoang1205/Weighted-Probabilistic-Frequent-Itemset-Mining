@@ -1,12 +1,12 @@
 import java.io.*;
 import java.util.*;
 
-public class FrequentItemsetProblem <E extends Comparable<E>> {
-    private int minSup;
+public class FrequentItemsetProblem <E> {
+    private int minSup = 2;
     private float t;
     private float alpha;
     private Set<E> I;
-    ArrayList<Set<Item<E>>> data;
+    ArrayList<Map<E, Double>> data;
     private Map<E, Double> w;
 
     public FrequentItemsetProblem(String filePath) {
@@ -26,19 +26,19 @@ public class FrequentItemsetProblem <E extends Comparable<E>> {
             String line; 
         
             while((line = br.readLine()) != null) {
-                Set<Item<E>> set = new HashSet<>();
+                Map<E, Double> transaction = new HashMap<>();
                 String[] items = line.split(" ");
                 System.out.println(line);
                 for (String e : items) {
                     try {
                         E itemName = (E)e;
+                        transaction.put(itemName, generateProb());
                         this.I.add(itemName);
-                        set.add(new Item<E>(itemName));
                     } catch (Exception error) {
                         error.printStackTrace();
                     }
                 }
-                this.data.add(set);
+                this.data.add(transaction);
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -61,6 +61,19 @@ public class FrequentItemsetProblem <E extends Comparable<E>> {
         }
     }
 
+    private static double generateProb() {
+        Random random = new Random();
+        double prob = random.nextGaussian() * Math.sqrt(0.125) + 0.5;
+        if (prob > 1) {
+            return 1.0;
+        }
+        
+        if (prob < 0) {
+            return 0.001;
+        }
+        return Math.round(prob*1000)/(Double)1000.0;   
+    }
+
     private void createWeight() {
         this.w = new HashMap<E, Double>();
         Random random = new Random();
@@ -71,9 +84,9 @@ public class FrequentItemsetProblem <E extends Comparable<E>> {
     }
     
     public void printData() {
-        for (Set<Item<E>> set : this.data) {
+        for (Map<E, Double> transaction : this.data) {
             System.out.print("[");
-            System.out.print(set);
+            System.out.print(transaction);
             System.out.println("]");
         }
     }
@@ -82,5 +95,8 @@ public class FrequentItemsetProblem <E extends Comparable<E>> {
         return w;
     }
 
-    public void solve() {}
+    public void solve() {
+        Find_wPFI<E> wPFI = new Find_wPFI<>(this.I, this.data, this.w, this.minSup, this.t);
+        System.out.println(wPFI.Scan_Find_Size_1_wPFI());
+    }
 }
