@@ -7,9 +7,9 @@ import java.util.Set;
 
 public class Test {
     public static void main(String[] args) {
-        FrequentItemsetProblem<String> problem = new FrequentItemsetProblem<>("test.txt");
-        problem.printData();
-        problem.solve();
+        FrequentItemsetProblem<String> problem = new FrequentItemsetProblem<>("mushrooms.txt", 0.02, 0.6, 0.6);
+        Set<Set<String>> wPFI = problem.solve("Algorithm2");
+        System.out.println(wPFI);
         // Map<String, Double> w = problem.getW();
         // System.out.println(w.get("1"));
 
@@ -38,9 +38,9 @@ public class Test {
         // DB.add(t1);
         // Find_wPFI<String> f = new Find_wPFI<>(null, null, null, 0, 0);
         // Set<String> X = new HashSet<>();
-        // X.add("Video");
+        // X.add("Milk");
         // X.add("Fruit");
-        // System.out.println(f.Pr(DB, X, 2));
+        // System.out.println(f.Pr(DB, X, 1));
 
 
     }

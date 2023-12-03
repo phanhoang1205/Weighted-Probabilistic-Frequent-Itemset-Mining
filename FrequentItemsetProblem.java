@@ -2,16 +2,19 @@ import java.io.*;
 import java.util.*;
 
 public class FrequentItemsetProblem <E> {
-    private int minSup = 2;
-    private float t;
-    private float alpha;
+    private int minSup;
+    private double t;
+    private double alpha;
     private Set<E> I;
     ArrayList<Map<E, Double>> data;
     private Map<E, Double> w;
 
-    public FrequentItemsetProblem(String filePath) {
+    public FrequentItemsetProblem(String filePath, Double minSupRatio, Double t, Double alpha) {
         readData(filePath);
         createWeight();
+        this.t = t;
+        this.alpha = alpha;
+        this.minSup = (int) (minSupRatio * data.size());
     };
 
     private void readData(String filePath) {
@@ -28,7 +31,6 @@ public class FrequentItemsetProblem <E> {
             while((line = br.readLine()) != null) {
                 Map<E, Double> transaction = new HashMap<>();
                 String[] items = line.split(" ");
-                System.out.println(line);
                 for (String e : items) {
                     try {
                         E itemName = (E)e;
@@ -95,8 +97,26 @@ public class FrequentItemsetProblem <E> {
         return w;
     }
 
-    public void solve() {
+    public Set<Set<E>> solve(String Algorithm) {
+        Map<Integer, Set<Set<E>>> WPFI = new HashMap<>();
+
         Find_wPFI<E> wPFI = new Find_wPFI<>(this.I, this.data, this.w, this.minSup, this.t);
-        System.out.println(wPFI.Scan_Find_Size_1_wPFI());
+        WPFI.put(1, wPFI.Scan_Find_Size_1_wPFI());
+        int k = 2;
+
+        if (WPFI.get(k-1) == null) {
+            return null;
+        }
+
+        System.out.printf("Running 1-th iteration with %d WPFI %d-itemset \n", WPFI.get(k-1).size(), k-1);
+        while (!WPFI.get(k-1).isEmpty()) {
+            wPFIAprioriGen<E> generator = new wPFIAprioriGen<>(WPFI.get(k-1), this.alpha, wPFI);
+            Set<Set<E>> Ck = generator.algorithm2();
+            WPFI.put(k, wPFI.Scan_Find_Size_k_wPFI(Ck));
+            k += 1;
+            System.out.printf("Running %d-th iteration with %d WPFI %d-itemset \n", k-1, WPFI.get(k-1).size(), k-1);
+        }
+        
+        return WPFI.get(k-2);
     }
 }
