@@ -98,6 +98,16 @@ public class FrequentItemsetProblem <E> {
     }
 
     public Set<Set<E>> solve(String Algorithm) {
+        int algorithm = 0;
+        if (Algorithm.equals("Algorithm_2")) {
+            algorithm = 2;
+        } else if (Algorithm.equals("Algorithm_3")) {
+            algorithm = 3;
+        } else {
+            System.out.println("solve method only support two algorithm: 'Algorithm_2', 'Algorithm_3'");
+            System.exit(0);
+        }
+
         Map<Integer, Set<Set<E>>> WPFI = new HashMap<>();
 
         Find_wPFI<E> wPFI = new Find_wPFI<>(this.I, this.data, this.w, this.minSup, this.t);
@@ -110,13 +120,18 @@ public class FrequentItemsetProblem <E> {
 
         System.out.printf("Running 1-th iteration with %d WPFI %d-itemset \n", WPFI.get(k-1).size(), k-1);
         while (!WPFI.get(k-1).isEmpty()) {
-            wPFIAprioriGen<E> generator = new wPFIAprioriGen<>(WPFI.get(k-1), this.alpha, wPFI);
-            Set<Set<E>> Ck = generator.algorithm2();
-            WPFI.put(k, wPFI.Scan_Find_Size_k_wPFI(Ck));
+
+            if (algorithm == 2) {
+                Set<Set<E>> Ck = new wPFIAprioriGen<>(WPFI.get(k-1), this.alpha, wPFI).algorithm2();
+                WPFI.put(k, wPFI.Scan_Find_Size_k_wPFI(Ck));
+            } else {
+                Set<Set<E>> Ck = new wPFIAprioriGen<>(WPFI.get(k-1), this.alpha, wPFI).algorithm3();
+                WPFI.put(k, wPFI.Scan_Find_Size_k_wPFI(Ck));
+            }
+               
             k += 1;
             System.out.printf("Running %d-th iteration with %d WPFI %d-itemset \n", k-1, WPFI.get(k-1).size(), k-1);
         }
-        
         return WPFI.get(k-2);
     }
 }

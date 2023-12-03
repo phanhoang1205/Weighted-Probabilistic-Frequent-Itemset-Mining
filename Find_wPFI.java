@@ -1,5 +1,6 @@
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
@@ -9,7 +10,9 @@ public class Find_wPFI <E>{
     protected ArrayList<Map<E, Double>> DB;
     protected Map<E, Double> w;
     protected int minSup;
-    protected double t = 0.6;
+    protected double t;
+    protected Map<E, Double> mu_1;
+    protected Map<Set<E>, Double> mu_k;
 
     public Find_wPFI(Set<E> I, ArrayList<Map<E, Double>> DB, Map<E, Double> w, int minSup, double t) {
         this.I = I;
@@ -21,14 +24,20 @@ public class Find_wPFI <E>{
 
     public Set<Set<E>> Scan_Find_Size_1_wPFI() {
         Set<Set<E>> L1 = new HashSet<>();
+        this.mu_k = new HashMap<Set<E>, Double>();
+        this.mu_1 = new HashMap<>();
+
         for (E i : this.I) {
             int supItemSet = 0;
+            double prob = 0.0;
             for (Map<E, Double> transaction : this.DB) {
                 if (transaction.keySet().contains(i)) {
                     supItemSet += 1;
+                    prob += transaction.get(i);
                 }     
             }
 
+            this.mu_1.put(i, prob);
             if (supItemSet >= this.minSup) {
                 Set<E> itemSet = new HashSet<>();
                 itemSet.add(i);
@@ -36,6 +45,7 @@ public class Find_wPFI <E>{
                 double pr = Pr(this.DB, itemSet, this.minSup);
                 if (w*pr >= this.t) {
                     L1.add(itemSet);
+                    this.mu_k.put(itemSet, prob);
                 }
             }
         }
@@ -44,11 +54,19 @@ public class Find_wPFI <E>{
 
     public Set<Set<E>> Scan_Find_Size_k_wPFI(Set<Set<E>> Ck) {
         Set<Set<E>> Lk = new HashSet<>();
+        this.mu_k = new HashMap<>();
+
         for (Set<E> itemSet : Ck) {
             int supItemSet = 0;
+            double prob_itemSet = 0.0;
             for (Map<E, Double> transaction : this.DB) {
                 if (transaction.keySet().containsAll(itemSet)) {
                     supItemSet += 1;
+                    double prob = 1.0;
+                    for (E item : itemSet) {
+                        prob *= transaction.get(item);
+                    }
+                    prob_itemSet += prob;
                 }
             }
 
@@ -56,6 +74,7 @@ public class Find_wPFI <E>{
                 double w = calculateWeight(itemSet);
                 if (w*Pr(this.DB, itemSet, this.minSup) >= this.t) {
                     Lk.add(itemSet);
+                    this.mu_k.put(itemSet, prob_itemSet);
                 }
             }
         }
@@ -110,5 +129,9 @@ public class Find_wPFI <E>{
             e.printStackTrace();
         }
         return P[minSup][DB.size()];
+    }
+
+    public Map<Set<E>, Double> getMu_k() {
+        return mu_k;
     }
 }
