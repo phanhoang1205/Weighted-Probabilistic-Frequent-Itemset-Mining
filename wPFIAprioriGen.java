@@ -62,8 +62,7 @@ public class wPFIAprioriGen<E> extends Find_wPFI<E>{
     public Set<Set<E>> algorithm3() {
         Set<Set<E>> Ck = new HashSet<>();
         Set<E> I0 = new HashSet<>();
-        Double m = Collections.max(w.values());
-        Double mu_hat = findMuHat(minSup, t, m);
+        double Is = Collections.min(w.values());
 
         for (Set<E> itemSet : Lk) {
             for (E i : itemSet) {
@@ -72,6 +71,9 @@ public class wPFIAprioriGen<E> extends Find_wPFI<E>{
         }
 
         for (Set<E> X : Lk) {
+            Double m = max(calculateWeight(X) , Is);
+            Double mu_hat = findMuHat(minSup, t, m);
+
             Set<E> difference1 = new HashSet<>(I0);
             difference1.removeAll(X);
             for (E Ii : difference1) {
@@ -109,6 +111,14 @@ public class wPFIAprioriGen<E> extends Find_wPFI<E>{
         }
     }
 
+    private Double max(Double w_X, Double w_Is) {
+        if (w_X > w_Is) {
+            return w_X;
+        } else {
+            return w_Is;
+        }
+    }
+
     private E argmin(Set<E> set, Map<E, Double> weight) {
         E minKey = null;
         Double minValue = Double.MAX_VALUE;
@@ -124,7 +134,7 @@ public class wPFIAprioriGen<E> extends Find_wPFI<E>{
 
     private Double findMuHat(int minSup, double t, double m) {
         double lower = 0.0;
-        double upper = (double) this.n;
+        double upper = minSup;
         double epsilon = 0.0000000001;
         double mid = 0.0;
 

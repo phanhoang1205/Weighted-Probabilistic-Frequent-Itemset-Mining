@@ -153,12 +153,10 @@ public class FrequentItemsetProblem <E> {
             if (algorithm == 2) {
                 Set<Set<E>> Ck = new wPFIAprioriGen<>(WPFI.get(k-1), this.alpha, wPFI).algorithm2();
                 System.out.println("Size Ck: " + Ck.size());
-                System.out.println(wPFI.mu_k);
                 WPFI.put(k, wPFI.Scan_Find_Size_k_wPFI(Ck));
             } else {
                 Set<Set<E>> Ck = new wPFIAprioriGen<>(WPFI.get(k-1), this.alpha, wPFI).algorithm3();
-                System.out.println("Size Ck: " + Ck.size());
-                System.out.println(wPFI.mu_k);
+                System.out.println("Size Ck: " + Ck.size());        
                 WPFI.put(k, wPFI.Scan_Find_Size_k_wPFI(Ck));
             }
                
