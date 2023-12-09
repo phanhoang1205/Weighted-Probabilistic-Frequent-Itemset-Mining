@@ -6,6 +6,7 @@ import java.util.Set;
 public class wPFIAprioriGen<E> extends Find_wPFI<E>{
     private Set<Set<E>> Lk;
     private double alpha;
+    private int n;
 
     public wPFIAprioriGen(Set<Set<E>> Lk, double alpha, Find_wPFI<E> wPFI){
         super(wPFI.I, wPFI.DB, wPFI.w, wPFI.minSup, wPFI.t);
@@ -13,6 +14,7 @@ public class wPFIAprioriGen<E> extends Find_wPFI<E>{
         this.alpha = alpha;
         this.mu_k = wPFI.mu_k;
         this.mu_1 = wPFI.mu_1;
+        this.n = DB.size();
     }
 
     // public wPFIAprioriGen(Set<Set<E>> Lk, Map<Set<E>, Double> mu_k, double alpha, Find_wPFI<E> wPFI) {
@@ -76,7 +78,7 @@ public class wPFIAprioriGen<E> extends Find_wPFI<E>{
                 Set<E> union = new HashSet<>(X);
                 union.add(Ii);
                 if (calculateWeight(union) >= t) {
-                    if (min(mu_k.get(X), mu_1.get(Ii)) > mu_hat && mu_k.get(X)*mu_1.get(Ii) >= alpha*DB.size()*mu_hat) {
+                    if ((min(mu_k.get(X), mu_1.get(Ii)) >= mu_hat) && (mu_k.get(X)*mu_1.get(Ii) >= alpha*n*mu_hat)) {
                         Ck.add(union);
                     } 
                 }
@@ -90,7 +92,7 @@ public class wPFIAprioriGen<E> extends Find_wPFI<E>{
                 Set<E> union = new HashSet<>(X);
                 union.add(Ii);
                 if (calculateWeight(union) >= t && w.get(Ii) < w.get(Im)) {
-                    if (min(mu_k.get(X), mu_1.get(Ii)) > mu_hat && mu_k.get(X)*mu_1.get(Ii) >= alpha*DB.size()*mu_hat) {
+                    if ((min(mu_k.get(X), mu_1.get(Ii)) >= mu_hat) && (mu_k.get(X)*mu_1.get(Ii) >= alpha*n*mu_hat)) {
                         Ck.add(union);
                     }
                 }
@@ -122,7 +124,7 @@ public class wPFIAprioriGen<E> extends Find_wPFI<E>{
 
     private Double findMuHat(int minSup, double t, double m) {
         double lower = 0.0;
-        double upper = (double) DB.size();
+        double upper = (double) this.n;
         double epsilon = 0.0000000001;
         double mid = 0.0;
 

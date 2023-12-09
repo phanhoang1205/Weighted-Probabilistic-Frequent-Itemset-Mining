@@ -1,3 +1,6 @@
+import java.math.BigDecimal;
+import java.math.MathContext;
+import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -7,7 +10,7 @@ import java.util.Set;
 
 public class Find_wPFI <E>{
     protected Set<E> I;
-    protected ArrayList<Map<E, Double>> DB;
+    public ArrayList<Map<E, Double>> DB;
     protected Map<E, Double> w;
     protected int minSup;
     protected double t;
@@ -28,25 +31,27 @@ public class Find_wPFI <E>{
         this.mu_1 = new HashMap<>();
 
         for (E i : this.I) {
-            int supItemSet = 0;
             double prob = 0.0;
             for (Map<E, Double> transaction : this.DB) {
-                if (transaction.keySet().contains(i)) {
-                    supItemSet += 1;
-                    prob += transaction.get(i);
-                }     
+                prob += transaction.get(i);   
             }
-
             this.mu_1.put(i, prob);
-            if (supItemSet >= this.minSup) {
-                Set<E> itemSet = new HashSet<>();
-                itemSet.add(i);
-                double w = calculateWeight(itemSet);
-                double pr = Pr(this.DB, itemSet, this.minSup);
-                if (w*pr >= this.t) {
-                    L1.add(itemSet);
-                    this.mu_k.put(itemSet, prob);
-                }
+     
+            Set<E> itemSet = new HashSet<>();
+            itemSet.add(i);
+            double w = calculateWeight(itemSet);
+            // long startTime = System.nanoTime();
+            double[] pr_mu = Pr(this.DB, itemSet, this.minSup);
+            double pr = pr_mu[0];
+            double mu_itemset = pr_mu[1];
+            // long endTime = System.nanoTime();
+            // long executionTime = (endTime - startTime) / 1000000;
+            // System.out.println("took: "
+            //                + executionTime + "ms");
+            // System.out.println(pr);
+            if (w*pr >= this.t) {
+                L1.add(itemSet);
+                this.mu_k.put(itemSet, mu_itemset);
             }
         }
         return L1;
@@ -57,25 +62,19 @@ public class Find_wPFI <E>{
         this.mu_k = new HashMap<>();
 
         for (Set<E> itemSet : Ck) {
-            int supItemSet = 0;
-            double prob_itemSet = 0.0;
-            for (Map<E, Double> transaction : this.DB) {
-                if (transaction.keySet().containsAll(itemSet)) {
-                    supItemSet += 1;
-                    double prob = 1.0;
-                    for (E item : itemSet) {
-                        prob *= transaction.get(item);
-                    }
-                    prob_itemSet += prob;
-                }
-            }
-
-            if (supItemSet >= this.minSup) {
-                double w = calculateWeight(itemSet);
-                if (w*Pr(this.DB, itemSet, this.minSup) >= this.t) {
-                    Lk.add(itemSet);
-                    this.mu_k.put(itemSet, prob_itemSet);
-                }
+            double w = calculateWeight(itemSet);
+            // long startTime = System.nanoTime();
+            double[] pr_mu = Pr(this.DB, itemSet, this.minSup);
+            // long endTime = System.nanoTime();
+            // long executionTime = (endTime - startTime) / 1000000;
+            // System.out.println("took: "
+            //                + executionTime + "ms");
+            // pr.multiply(BigDecimal.valueOf(w)).compareTo(BigDecimal.valueOf(t)) >=0
+            double pr = pr_mu[0];
+            double mu_itemSet = pr_mu[1];
+            if (w*pr >= this.t) {
+                Lk.add(itemSet);
+                this.mu_k.put(itemSet, mu_itemSet);
             }
         }
         return Lk;
@@ -91,45 +90,86 @@ public class Find_wPFI <E>{
 
     private double calculate_prob(Set<E> X, Map<E, Double> T) {
         double prob = 1.0;
-        if (T.keySet().containsAll(X)) {
-            for (E item : X) {
-                prob *= T.get(item);
-            }
-        } else {
-            return 0.0;
+        for (E item : X) {
+            prob *= T.get(item);
         }
         return prob;
     }
 
-    public double Pr(ArrayList<Map<E, Double>> DB, Set<E> X, int minSup) {
-        Double[][] P = new Double[minSup + 1][DB.size() + 1];
-        Arrays.parallelSetAll(P, i -> new Double[DB.size() + 1]);
-        try {
-            for (Double[] row : P) {
-                Arrays.fill(row, 0.0);
-            }
-            
-            P[0][0] = 1.0;
-            for (int j = 1; j <= DB.size(); j++) {
-                P[0][j] = 1.0;
-                P[1][j] = P[1][j-1] + calculate_prob(X, DB.get(j-1)) * (1 - P[1][j-1]);
-            }
-            
-            for (int i = 2; i <= minSup; i++) {
-                if (P[i-1][DB.size()-i+1] < this.t) {
-                    return 0;
-                }
-
-                for (int j = i; j <= DB.size(); j++) {
-                    P[i][j] = P[i-1][j-1] * calculate_prob(X, DB.get(j-1)) + P[i][j-1] * (1 - calculate_prob(X, DB.get(j-1)));
-                }
-            }
-            
-        } catch (Exception e) {
-            e.printStackTrace();
+    public double[] Pr(ArrayList<Map<E, Double>> DB, Set<E> X, int minSup) {
+        int dbSize = DB.size();
+        double[][] P = new double[minSup + 1][dbSize + 1];
+        
+        // Pre-calculate probabilities
+        double mu_itemset = 0;
+        double[] probabilities = new double[dbSize];
+        for (int j = 0; j < dbSize; j++) {
+            probabilities[j] = calculate_prob(X, DB.get(j));
+            mu_itemset += probabilities[j];
         }
-        return P[minSup][DB.size()];
-    }
+        
+        P[0][0] = 1.0;
+        for (int j = 1; j <= dbSize; j++) {
+            P[0][j] = 1.0;
+            P[1][j] = P[1][j-1] + probabilities[j-1] * (1 - P[1][j-1]);
+        }
+        
+        for (int i = 2; i <= minSup; i++) {
+            if (P[i-1][dbSize - i + 1] < this.t) {
+                return new double[]{0.0, mu_itemset};
+            }
+    
+            for (int j = i; j <= dbSize; j++) {
+                P[i][j] = P[i-1][j-1] * probabilities[j-1] + P[i][j-1] * (1 - probabilities[j-1]);
+            }
+        }
+
+        double[] result = new double[]{P[minSup][dbSize], mu_itemset};
+        return result;
+    } 
+
+    // private BigDecimal calculate_prob1(Set<E> X, Map<E, Double> T) {
+    //     BigDecimal prob = BigDecimal.ONE;
+    //     for (E item : X) {
+    //         prob = prob.multiply(BigDecimal.valueOf(T.get(item)));
+    //     }
+    //     return prob;
+    // }
+    
+    // public BigDecimal Pr1(ArrayList<Map<E, Double>> DB, Set<E> X, int minSup) {
+    //     int dbSize = DB.size();
+    //     BigDecimal[][] P = new BigDecimal[minSup + 1][dbSize + 1];
+    //     for (int i = 0; i <= minSup; i++) {
+    //         for (int j = 0; j <= dbSize; j++) {
+    //             P[i][j] = BigDecimal.ZERO;
+    //         }
+    //     }        
+        
+    //     // Pre-calculate probabilities
+    //     BigDecimal[] probabilities = new BigDecimal[dbSize];
+    //     for (int j = 0; j < dbSize; j++) {
+    //         probabilities[j] = calculate_prob1(X, DB.get(j));
+    //     }
+        
+    //     P[0][0] = BigDecimal.ONE;
+    //     for (int j = 1; j <= dbSize; j++) {
+    //         P[0][j] = BigDecimal.ONE;
+    //         P[1][j] = P[1][j-1].add(probabilities[j-1].multiply(BigDecimal.ONE.subtract(P[1][j-1])));
+    //     }
+        
+    //     for (int i = 2; i <= minSup; i++) {
+    //         if (P[i-1][dbSize - i + 1].compareTo(BigDecimal.valueOf(this.t)) < 0) {
+    //             return BigDecimal.ZERO;
+    //         }
+        
+    //         for (int j = i; j <= dbSize; j++) {
+    //             P[i][j] = P[i-1][j-1].multiply(probabilities[j-1]).add(P[i][j-1].multiply(BigDecimal.ONE.subtract(probabilities[j-1])));
+    //         }
+    //     }
+    //     return P[minSup][dbSize];
+    // }
+    
+
 
     public Map<Set<E>, Double> getMu_k() {
         return mu_k;
