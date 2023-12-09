@@ -5,7 +5,7 @@ import java.util.Set;
 
 public class Test {
     public static void main(String[] args) {
-        FrequentItemsetProblem<String> problem = new FrequentItemsetProblem<>("mushrooms.txt", 0.2, 0.6, 0.5);
+        FrequentItemsetProblem<String> problem = new FrequentItemsetProblem<>("mushrooms.txt", 0.2, 0.7, 0.6);
         // problem.readDataTest("test.txt");
         // System.out.println(problem.data);
         // System.out.println(problem.minSup);
@@ -29,7 +29,15 @@ public class Test {
         // System.out.println(f.Pr1(problem.data, set, 1));
         // System.out.println(f.Probability(3, problem.data.size(), set));
 
-        Set<Set<String>> wPFI = problem.solve("Algorithm_2");
+        long startTime = System.nanoTime();
+        Set<Set<String>> wPFI = problem.solve("Algorithm_3");
+        long endTime = System.nanoTime();
+        long executionTime = (endTime - startTime) / 1000000;
+            
         System.out.println(wPFI);
+        
+        System.out.println("took: "
+                           + executionTime + "ms");
+
     }
 }
