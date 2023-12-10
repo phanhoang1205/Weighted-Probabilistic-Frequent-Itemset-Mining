@@ -1,43 +1,45 @@
 import java.math.BigDecimal;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
 public class Test {
     public static void main(String[] args) {
-        FrequentItemsetProblem<String> problem = new FrequentItemsetProblem<>("mushrooms.txt", 0.2, 0.7, 0.6);
-        // problem.readDataTest("test.txt");
-        // System.out.println(problem.data);
-        // System.out.println(problem.minSup);
-        // Find_wPFI<String> f = new Find_wPFI<>(problem.I, problem.data, problem.w, problem.minSup, problem.t);
-        // Set<String> set = new HashSet<>();
-        // set.add("1");
-        // BigDecimal prob = BigDecimal.ONE;
-        // for (Map<String, Double> transaction : problem.data) {
-        //     prob = prob.multiply(BigDecimal.ONE.subtract(BigDecimal.valueOf(transaction.get("88"))));
-        //     // System.out.println(prob);
-        //     // try {
-        //     //     Thread.sleep(5);
-        //     // } catch (InterruptedException e) {
-        //     //     // TODO Auto-generated catch block
-        //     //     e.printStackTrace();
-        //     // }
-        // }
-        // System.out.println(BigDecimal.ONE.subtract(prob));
-        // System.out.println("cal Pr 1");
-        // System.out.println(f.Pr(problem.data, set, 1));
-        // System.out.println(f.Pr1(problem.data, set, 1));
-        // System.out.println(f.Probability(3, problem.data.size(), set));
+        FrequentItemsetProblem<String> problem = new FrequentItemsetProblem<>("mushrooms.txt", 0.1, 0.6, 0.6);
 
-        long startTime = System.nanoTime();
-        Set<Set<String>> wPFI = problem.solve("Algorithm_3");
-        long endTime = System.nanoTime();
-        long executionTime = (endTime - startTime) / 1000000;
-            
-        System.out.println(wPFI);
+        Map<Double, Long> time_algorithm2 = new HashMap<>();
+        Map<Double, Long> time_algorithm3 = new HashMap<>();
+
+        double ratio = 0.1;
+
+        while (ratio <= 0.3) {
+            problem.setMinSup(ratio);
+            long startTime = System.nanoTime();
+            Set<Set<String>> wPFI = problem.solve("Algorithm_2");
+            long endTime = System.nanoTime();
+            long executionTime = (endTime - startTime) / 1000000000;
+            System.out.println("took: "
+                            + executionTime + "s");
+            time_algorithm2.put(ratio, executionTime);
+            ratio += 0.05;
+        }
+
+
+        ratio = 0.1;
+        while (ratio <= 0.3) {
+            problem.setMinSup(ratio);
+            long startTime = System.nanoTime();
+            Set<Set<String>> wPFI = problem.solve("Algorithm_3");
+            long endTime = System.nanoTime();
+            long executionTime = (endTime - startTime) / 1000000000;
+            System.out.println("took: "
+                            + executionTime + "s");
+            time_algorithm3.put(ratio, executionTime);
+            ratio += 0.05;
+        }
         
-        System.out.println("took: "
-                           + executionTime + "ms");
-
+        System.out.println(time_algorithm2);
+        System.out.println(time_algorithm3);
     }
 }

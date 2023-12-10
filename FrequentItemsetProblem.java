@@ -1,6 +1,20 @@
 import java.io.*;
 import java.util.*;
 
+    /*
+        Class: FrequentItemsetProblem<E>
+        This class represents a problem of finding frequent itemsets in uncertain data using weighted Apriori algorithm
+
+        Fields:
+        minSup: int - Minimum support.
+        t: double - Threshold.
+        alpha: double - scale factor.
+        I: Set<E> - Set of items in the dataset.
+        data: ArrayList<Map<E, Double>> - List of transactions, each represented as a map of items to their probabilities.
+        w: Map<E, Double> - Weight for each item.
+        PFI: Set<Set<E>> - Frequent itemsets. 
+    */
+
 public class FrequentItemsetProblem <E> {
     public int minSup;
     public double t;
@@ -9,11 +23,13 @@ public class FrequentItemsetProblem <E> {
     public ArrayList<Map<E, Double>> data;
     public Map<E, Double> w;
     private Set<Set<E>> PFI;
+    private int n;
 
+    // Constructors:
     public FrequentItemsetProblem(String filePath, Double minSupRatio, Double t, Double alpha) {
         File f = new File("fullyuncertaindb.txt");
         if(!f.exists() || f.isDirectory()) { 
-            int n = getNumOfLines(filePath);
+            this.n = getNumOfLines(filePath);
             CreateDatabase<E> c = new CreateDatabase<>(n, this.I);
             c.createFullyDB();
             readData();
@@ -30,6 +46,20 @@ public class FrequentItemsetProblem <E> {
         }
     };
 
+    /*
+        Methods:
+        getNumOfLines(String filePath): Reads the dataset file, counts the number of lines, and extracts unique items.
+
+        Input:
+        filePath: String - Path to the dataset file.
+
+        Output:
+        int - Number of lines in the file.
+        I: Set<E> - Set of items in the dataset.
+
+        Time Complexity: O(N * M), where N is the number of lines in the file, and M is the average number of items in a transaction.
+        Space Complexity: O(M), where M is the number of unique items in the dataset.
+    */
     private int getNumOfLines(String filePath) {
         FileReader fr =null;
         BufferedReader br = null;
@@ -58,6 +88,10 @@ public class FrequentItemsetProblem <E> {
         return count;
     }
 
+
+    /*
+        Method to read dataset from file 
+    */
     private void readData() {
         FileReader fr =null;
         BufferedReader br = null;
@@ -105,6 +139,16 @@ public class FrequentItemsetProblem <E> {
         }
     }
 
+
+    /*
+        CreateWeight(): Creates random weights for each item in the dataset
+        Output:
+        •	w: Map of items of type E and their associated weights (doubles).
+
+        Time Complexity: O(|I|), where |I| is the number of unique items in the dataset.
+        Space Complexity: O(M), where M is the number of unique items in the dataset.
+    */
+
     private void createWeight() {
         this.w = new HashMap<E, Double>();
         Random random = new Random();
@@ -114,6 +158,10 @@ public class FrequentItemsetProblem <E> {
         }
     }
     
+
+    /*
+        Method to print dataset from file 
+    */
     public void printData() {
         for (Map<E, Double> transaction : this.data) {
             System.out.print("[");
@@ -122,10 +170,15 @@ public class FrequentItemsetProblem <E> {
         }
     }
 
+    // GetW(): Gets the map of items to their weights.
     public Map<E, Double> getW() {
         return w;
     }
 
+    
+    /*
+        Algorithm 1
+    */
     public Set<Set<E>> solve(String Algorithm) {
         int algorithm = 0;
         if (Algorithm.equals("Algorithm_2")) {
@@ -167,89 +220,7 @@ public class FrequentItemsetProblem <E> {
         return WPFI.get(k-2);
     }
 
-    // public Set<Set<E>> topKFrequent(int k, Find_wPFI<E> wPFI) {
-    //     PriorityQueue<ItemSet<E>> AIQ = new PriorityQueue<>(k);
-    //     int m = 0;
-    //     for (E item : this.I) {
-    //         Set<E> singleItemset = new HashSet<>();
-    //         singleItemset.add(item);
-    //         AIQ.add(new ItemSet<E>(singleItemset, wPFI.Pr(this.data, singleItemset, this.minSup)[0]));
-    //     }
-
-    //     while(getNext(AIQ, k, m) != null) {
-
-    //     }
-    //     return null;
-    // }
-
-    // public Set<E> getNext(PriorityQueue<ItemSet<E>> AIQ, int k, int m) {
-    //     if (AIQ.isEmpty() || m == k) {
-    //         return null;
-    //     }
-
-    //     ItemSet<E> X = AIQ.poll();
-    //     m += 1;
-    //     return null;
-    // }
-
-    public void readDataTest(String filename) {
-        FileReader fr =null;
-        BufferedReader br = null;
-        this.data = new ArrayList<>();
-        this.I = new HashSet<>();
-  
-        try {
-            fr = new FileReader(filename);
-            br = new BufferedReader(fr);
-            String line; 
-        
-            while((line = br.readLine()) != null) {
-                Map<E, Double> transaction = new HashMap<>();
-                String[] items = line.split(" ");
-                for (String e : items) {
-                    try {
-                        E itemName = (E) e;
-                        transaction.put(itemName, generateProb());
-                        this.I.add(itemName);
-                    } catch (Exception error) {
-                        error.printStackTrace();
-                    }
-                }
-                this.data.add(transaction);
-            }
-            createWeight();
-            this.minSup = 1;
-        } catch (Exception e) {
-            e.printStackTrace();
-        } finally {
-            if (fr != null) {
-                try {
-                    fr.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
-
-            if (br != null) {
-                try {
-                    fr.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
-        }
-    }
-
-    private static double generateProb() {
-        Random random = new Random();
-        double prob;
-        do {
-            prob = random.nextGaussian() * Math.sqrt(0.125) + 0.5;
-        } while (prob <= 0 || prob >= 1);
-        prob = Math.round(prob*1000)/(Double)1000.0;
-        if (prob == 1.0) {
-            return 0.999;
-        }
-        return (prob == 0) ? 0.001 : prob;   
+    public void setMinSup(double ratio) {
+        this.minSup = (int) (this.minSup * this.n);
     }
 }
