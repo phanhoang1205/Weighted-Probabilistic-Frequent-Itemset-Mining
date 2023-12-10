@@ -1,6 +1,4 @@
-import java.math.BigDecimal;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
@@ -10,6 +8,7 @@ public class Test {
 
         Map<Double, Long> time_algorithm2 = new HashMap<>();
         Map<Double, Long> time_algorithm3 = new HashMap<>();
+        
 
         double ratio = 0.1;
 
@@ -20,7 +19,7 @@ public class Test {
             long endTime = System.nanoTime();
             long executionTime = (endTime - startTime) / 1000000000;
             System.out.println("took: "
-                            + executionTime + "s");
+                                + executionTime + "s");
             time_algorithm2.put(ratio, executionTime);
             ratio += 0.05;
         }

@@ -22,7 +22,6 @@ public class FrequentItemsetProblem <E> {
     public Set<E> I;
     public ArrayList<Map<E, Double>> data;
     public Map<E, Double> w;
-    private Set<Set<E>> PFI;
     private int n;
 
     // Constructors:
@@ -30,7 +29,7 @@ public class FrequentItemsetProblem <E> {
         File f = new File("fullyuncertaindb.txt");
         if(!f.exists() || f.isDirectory()) { 
             this.n = getNumOfLines(filePath);
-            CreateDatabase<E> c = new CreateDatabase<>(n, this.I);
+            CreateDatabase<E> c = new CreateDatabase<>(this.n, this.I);
             c.createFullyDB();
             readData();
             createWeight();
@@ -221,6 +220,6 @@ public class FrequentItemsetProblem <E> {
     }
 
     public void setMinSup(double ratio) {
-        this.minSup = (int) (this.minSup * this.n);
+        this.minSup = (int) (ratio * data.size());
     }
 }
