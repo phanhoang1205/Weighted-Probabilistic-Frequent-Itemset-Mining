@@ -7,6 +7,7 @@ For more information about the original paper, you should follow the link, [Clic
 ---
 ## ACKNOWLEDGMENTS
 We sincerely thank Zhiyang Li et al for contributing their research to the community. 
+
 We sincerely thank PhD. Nguyen Chi Thien for guiding us to complete this project. 
 
 ---
@@ -19,3 +20,7 @@ You need to install java environment to start this project. Then, move to the **
 ```
 
 For more specific parameter tunning, you should follow the instruction in README file in the **source** folder
+
+---
+## Dataset
+The Dataset is collected from the the Frequent Itemset Mining (FIMI) repository and the Open-Source Data Mining Library (SPMF) repository. [Click here](https://www.philippe-fournier-viger.com/spmf/index.php?link=datasets.php) to directly access to the dataset
