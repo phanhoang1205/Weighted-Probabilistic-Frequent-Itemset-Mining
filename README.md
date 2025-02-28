@@ -18,4 +18,4 @@ You need to install java environment to start this project. Then, move to the **
     java WPFI_Algorithm
 ```
 
-For more specific parameter tunning, you should follow the instruction in README file int the **source** folder
+For more specific parameter tunning, you should follow the instruction in README file in the **source** folder
